@@ -2,39 +2,26 @@
 
 const request = require('request');
 
-const fetchCharacterNames = (url) => {
-  return new Promise((resolve, reject) => {
-    request(url, (err, res, body) => {
-      if (err) reject(err);
-      resolve(JSON.parse(body).characters);
-    });
-  });
-};
-
-const fetchCharacterData = (characterUrl) => {
-  return new Promise((resolve, reject) => {
-    request(characterUrl, (err, res, body) => {
-      if (err) reject(err);
-      resolve(JSON.parse(body).name);
-    });
-  });
-};
-
-const main = async () => {
-  const movieId = process.argv[2];
-  const filmUrl = `https://swapi-api.hbtn.io/api/films/${movieId}`;
-
-  try {
-    const characters = await fetchCharacterNames(filmUrl);
-    
-    for (const character of characters) {
-      const name = await fetchCharacterData(character);
-      console.log(name);
+const req = (arr, i) => {
+  if (i === arr.length) return;
+  request(arr[i], (err, response, body) => {
+    if (err) {
+      throw err;
+    } else {
+      console.log(JSON.parse(body).name);
+      req(arr, i + 1);
     }
-  } catch (err) {
-    console.error('Error:', err);
-  }
+  });
 };
 
-main();
-
+request(
+  `https://swapi-api.hbtn.io/api/films/${process.argv[2]}`,
+  (err, response, body) => {
+    if (err) {
+      throw err;
+    } else {
+      const chars = JSON.parse(body).characters;
+      req(chars, 0);
+    }
+  }
+);
